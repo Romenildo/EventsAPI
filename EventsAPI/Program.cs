@@ -1,12 +1,22 @@
 using EventsAPI.Persistence;
+using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 
-//Adicionar como Singleton para funcioanr como um banco de dados local de utilizando LISTS
-//sem necessariamente ter um banco de dados conectado
-builder.Services.AddSingleton<EventsDbContext>();
+var connectionString = builder.Configuration.GetConnectionString("EventsCS");
+builder.Services.AddDbContext<EventsDbContext>(options => options.UseSqlServer(connectionString));
+
+//criar as migrations
+//dotnet ef migrations add FirstMigration -o Persistence/Migrations
+//dotnet ef migrations remove
+
+//criar os dados no banco de dados apos criar a migrations
+//dotnet ef database update
+
+//Caso usar o banco em memoria e nao no sql server
+//builder.Services.AddDbContext<EventsDbContext>(options => options.UseInMemoryDatabase("EventsDB"))
 
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle

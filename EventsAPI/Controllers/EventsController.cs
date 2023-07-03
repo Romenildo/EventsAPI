@@ -1,6 +1,7 @@
 ﻿using EventsAPI.Entities;
 using EventsAPI.Persistence;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace EventsAPI.Controllers
 {
@@ -25,7 +26,9 @@ namespace EventsAPI.Controllers
         [HttpGet("{id}")]
         public IActionResult GetById(Guid id)
         {
-            var Event = _context.Events.SingleOrDefault(e => e.Id == id);
+            var Event = _context.Events
+                .Include(e=>e.Speakers)
+                .SingleOrDefault(e => e.Id == id);
 
             if (Event == null) {
                 return NotFound();
@@ -37,6 +40,7 @@ namespace EventsAPI.Controllers
         public IActionResult Create(Event newEvent)
         {
             _context.Events.Add(newEvent);
+            _context.SaveChanges();
   
             return CreatedAtAction(nameof(GetById), new { id = newEvent.Id }, newEvent);
 
@@ -53,6 +57,8 @@ namespace EventsAPI.Controllers
             }
             Event.Update(updEvent.Title, updEvent.Description, updEvent.StartDate, updEvent.EndDate);
 
+            _context.Events.Update(Event);
+            _context.SaveChanges();
             return NoContent();
         }
 
@@ -65,6 +71,7 @@ namespace EventsAPI.Controllers
                 return NotFound();
             }
             Event.Finish();
+            _context.SaveChanges();
 
             return NoContent();
         }
@@ -72,12 +79,16 @@ namespace EventsAPI.Controllers
         [HttpPost("{id}/speakers")]
         public IActionResult AddSpeaket(Guid id, Speaker speaker) 
         {
-            var Event = _context.Events.SingleOrDefault(e => e.Id == id);
-            if (Event == null)
+            speaker.EventId = id;
+
+            var Event = _context.Events.Any(e => e.Id == id);
+            if (!Event)
             {
                 return NotFound();
             }
-            Event.Speakers.Add(speaker);
+            _context.Speakers.Add(speaker);
+            _context.SaveChanges();
+
             return NoContent();
         }
     }
