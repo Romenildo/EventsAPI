@@ -1,4 +1,5 @@
-﻿using EventsAPI.Entities;
+﻿using AutoMapper;
+using EventsAPI.Entities;
 using EventsAPI.Persistence;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -11,7 +12,9 @@ namespace EventsAPI.Controllers
 
 
         private readonly EventsDbContext _context;
-        public EventsController(EventsDbContext context) 
+        private readonly IMapper _mapper;
+
+        public EventsController(EventsDbContext context, IMapper mapper)
         {
             _context= context;
         }
@@ -33,7 +36,8 @@ namespace EventsAPI.Controllers
             if (Event == null) {
                 return NotFound();
             }
-            return Ok(Event);
+            var EventDto = _mapper.Map<Event>(Event);
+            return Ok(EventDto);
         }
 
         [HttpPost]
